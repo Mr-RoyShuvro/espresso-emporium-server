@@ -85,6 +85,33 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/user', async(req, res)=>{
+            const cursor = userCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        app.delete('/user/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        app.patch('/user', async(req, res)=>{
+            const user = req.body;
+            const email = user.email;
+            const query = {email: email};
+            const options = { upsert: true };
+            const updateUser = {
+                $set:{
+                    LastSignInTime: user.LastSignInTime
+                }
+            };
+            const result = await userCollection.updateOne(query, updateUser, options);
+            res.send(result);
+        });
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -94,8 +121,6 @@ async function run() {
     }
 }
 run().catch(console.dir);
-
-
 
 app.get('/', (req, res) => {
     res.send('Espresso Emporium is running');
